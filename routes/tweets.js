@@ -6,7 +6,6 @@ const asyncHandler = require("../utils/asynchandler");
 const { check, validationResult } = require("express-validator");
 
 const handleValidationErrors = (req, res, next) => {
-  console.log(req);
   const validationErrors = validationResult(req);
 
   if (!validationErrors.isEmpty()) {
@@ -52,8 +51,8 @@ router.get(
 
 router.post(
   "/",
+  validatorErrors,
   asyncHandler(async (req, res) => {
-    console.log(req.body);
     const { message } = req.body;
     if (message) {
       const newTweet = await db.Tweet.build({ message });
@@ -63,10 +62,36 @@ router.post(
   })
 );
 
-router.put("/:id(\\d+)", async (req, res) => {
-  const tweetId = parseInt(req.params.id);
-  const updatedTweet = await Tweet.findByPk(tweetId);
-  //we need to update
-});
+router.put(
+  "/:id(\\d+)",
+  validatorErrors,
+  asyncHandler(async (req, res, next) => {
+    const tweetId = parseInt(req.params.id);
+    const tweet = await Tweet.findByPk(tweetId);
+    if (tweet) {
+      tweet.message = req.body.message;
+      await tweet.save();
+      res.json({ tweet });
+    }
+    let err = new Error("Tweet not found");
+    err.status = 404;
+    next(err);
+  })
+);
+
+router.delete(
+  "/:id(\\d+)",
+  asyncHandler(async (req, res, next) => {
+    const tweetId = parseInt(req.params.id);
+    const tweet = await Tweet.findByPk(tweetId);
+    if (tweet) {
+      await tweet.destroy();
+      res.status(204).end();
+    }
+    let err = new Error("Tweet not found");
+    err.status = 404;
+    next(err);
+  })
+);
 
 module.exports = router;
