@@ -1,25 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../db/models");
+//all the imports
 const { Tweet } = db;
-const asyncHandler = require("../utils/asynchandler");
+const { asyncHandler, handleValidationErrors } = require("../utils/utils");
 const { check, validationResult } = require("express-validator");
-
-const handleValidationErrors = (req, res, next) => {
-  const validationErrors = validationResult(req);
-
-  if (!validationErrors.isEmpty()) {
-    const errors = validationErrors.array().map((error) => error.msg);
-
-    const err = Error("Bad request.");
-    err.errors = errors;
-    err.status = 400;
-    err.title = "Bad request.";
-    return next(err);
-  }
-  next();
-};
-
+const { requireAuth } = require("../auth");
+//all the middleware
 const validatorErrors = [
   check("message")
     .exists({ checkFalsy: true })
@@ -28,7 +15,8 @@ const validatorErrors = [
     .withMessage("Cannot be more than 280 charecters"),
   handleValidationErrors,
 ];
-
+router.use(requireAuth);
+//actual routes
 router.get(
   "/",
   asyncHandler(async (req, res) => {

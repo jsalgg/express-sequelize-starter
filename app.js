@@ -4,13 +4,15 @@ const { environment } = require("./config");
 const app = express();
 const indexRouter = require("./routes/index");
 const tweetsRouter = require("./routes/tweets");
-const cors = require("cors")
+const usersRouter = require("./routes/user");
+const cors = require("cors");
 
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(cors({ origin: "http://localhost:4000" }));
 app.use("/", indexRouter); //routers go after initial middleware
 app.use("/tweets", tweetsRouter);
+app.use("/users", usersRouter);
 
 // Catch unhandled requests and forward to error handler.
 app.use((req, res, next) => {
@@ -32,8 +34,5 @@ app.use((err, req, res, next) => {
     stack: isProduction ? null : err.stack,
   });
 });
-
-
-
 
 module.exports = app;
